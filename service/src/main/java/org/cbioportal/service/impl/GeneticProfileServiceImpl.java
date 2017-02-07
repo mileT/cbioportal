@@ -58,4 +58,16 @@ public class GeneticProfileServiceImpl implements GeneticProfileService {
     public BaseMeta getMetaGeneticProfilesInStudy(String studyId) {
         return geneticProfileRepository.getMetaGeneticProfilesInStudy(studyId);
     }
+
+	@Override
+	public List<GeneticProfile> getGeneticProfilesReferredBy(String referringGeneticProfileId) {
+
+		return geneticProfileRepository.getGeneticProfilesReferredBy(referringGeneticProfileId);
+	}
+
+	@Override
+	public List<GeneticProfile> getGeneticProfilesReferringTo(String referredGeneticProfileId) {
+		
+		return geneticProfileRepository.getGeneticProfilesReferringTo(referredGeneticProfileId);
+	}
 }

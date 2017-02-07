@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2016 The Hyve B.V.
+ * This code is licensed under the GNU Affero General Public License (AGPL),
+ * version 3, or (at your option) any later version.
+ */
+
+/*
+ * This file is part of cBioPortal.
+ *
+ * cBioPortal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package org.cbioportal.service.impl;
 
 import java.util.ArrayList;
@@ -66,7 +89,7 @@ public class GenesetDataServiceImpl implements GenesetDataService {
                     genesetData.setGeneticProfileId(geneticProfileId);
                     genesetData.setSampleId(sample.getStableId());
                     genesetData.setGenesetId(genesetAlteration.getGenesetId());
-                    genesetData.setValue(genesetAlteration.getValues().split(",")[indexOfSampleId]);
+                    genesetData.setValue(genesetAlteration.getSplitValues()[indexOfSampleId]); //TODO introduce this "splitValues cache" in genetic data API as well...since .split(",") turned out to be bottleneck here...service went from 4s to 165ms after this improvement!
                     genesetDataList.add(genesetData);
                 }
             }

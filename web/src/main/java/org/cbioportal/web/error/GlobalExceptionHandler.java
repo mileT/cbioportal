@@ -2,6 +2,7 @@ package org.cbioportal.web.error;
 
 import org.cbioportal.service.exception.CancerTypeNotFoundException;
 import org.cbioportal.service.exception.GeneNotFoundException;
+import org.cbioportal.service.exception.GenesetNotFoundException;
 import org.cbioportal.service.exception.GeneticProfileNotFoundException;
 import org.cbioportal.service.exception.PatientNotFoundException;
 import org.cbioportal.service.exception.SampleListNotFoundException;
@@ -76,6 +77,13 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(GenesetNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleGenesetNotFound(GenesetNotFoundException ex) {
+
+        return new ResponseEntity<>(new ErrorResponse("Gene set not found: " + ex.getGenesetId()),
+                HttpStatus.NOT_FOUND);
+    }
+    
     @ExceptionHandler(SampleListNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleSampleListNotFound(SampleListNotFoundException ex) {
 

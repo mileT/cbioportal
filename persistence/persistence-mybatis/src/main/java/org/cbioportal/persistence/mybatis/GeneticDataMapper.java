@@ -1,9 +1,9 @@
 package org.cbioportal.persistence.mybatis;
 
-import java.util.List;
-
-import org.cbioportal.model.GenesetAlteration;
 import org.cbioportal.model.GeneticAlteration;
+import org.cbioportal.model.GenesetAlteration;
+
+import java.util.List;
 
 public interface GeneticDataMapper {
 

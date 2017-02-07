@@ -1,12 +1,12 @@
 package org.cbioportal.persistence.mybatis;
 
-import java.util.List;
-
-import org.cbioportal.model.GenesetAlteration;
 import org.cbioportal.model.GeneticAlteration;
+import org.cbioportal.model.GenesetAlteration;
 import org.cbioportal.persistence.GeneticDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class GeneticDataMyBatisRepository implements GeneticDataRepository {

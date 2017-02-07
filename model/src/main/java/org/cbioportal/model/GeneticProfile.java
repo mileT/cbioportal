@@ -20,7 +20,16 @@ public class GeneticProfile implements Serializable {
         PHOSPHORYLATION,
         PROTEIN_LEVEL,
         PROTEIN_ARRAY_PROTEIN_LEVEL,
-        PROTEIN_ARRAY_PHOSPHORYLATION;
+        PROTEIN_ARRAY_PHOSPHORYLATION, 
+        GENESET_SCORE;
+    }
+    
+    public static class DataType {
+    	//TODO fill in the other data types found in column DATA_TYPE
+
+    	//gene set types (using static types because values are not always using _ as we can see here):
+    	public static final String P_VALUE = "P-VALUE";
+    	public static final String GSVA_SCORE = "GSVA-SCORE";
     }
 
     private Integer geneticProfileId;
