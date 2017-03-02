@@ -74,6 +74,7 @@ public class QueryBuilder extends HttpServlet {
     public static final String SET_OF_CASE_IDS = "set_of_case_ids";
     public static final String CLINICAL_PARAM_SELECTION = "clinical_param_selection";
     public static final String GENE_LIST = "gene_list";
+    public static final String GENESET_LIST = "geneset_list";
     public static final String ACTION_NAME = "Action";
     public static final String XDEBUG = "xdebug";
     public static final String ACTION_SUBMIT = "Submit";
@@ -178,12 +179,13 @@ public class QueryBuilder extends HttpServlet {
         HashSet<String> geneticProfileIdSet = getGeneticProfileIds(httpServletRequest, xdebug);
 
         //  Get User Defined Gene List
-	    String geneList = httpServletRequest.getParameter(GENE_LIST);
-	    if (httpServletRequest instanceof XssRequestWrapper) {
-		    geneList = ((XssRequestWrapper)httpServletRequest).getRawParameter(GENE_LIST);
-	    }
+        String geneList = ((XssRequestWrapper)httpServletRequest).getRawParameter(GENE_LIST);
         geneList = servletXssUtil.getCleanInput(geneList);
         httpServletRequest.setAttribute(GENE_LIST, geneList);
+        //  Get User Defined Gene Sets List
+        String geneSetList = ((XssRequestWrapper)httpServletRequest).getRawParameter(GENESET_LIST);
+        geneSetList = servletXssUtil.getCleanInput(geneSetList);
+        httpServletRequest.setAttribute(GENESET_LIST, geneSetList);
 
         //  Get all Cancer Types
         try {
@@ -251,7 +253,7 @@ public class QueryBuilder extends HttpServlet {
                     exampleStudyQueries);
 
             boolean errorsExist = validateForm(action, profileList, geneticProfileIdSet,
-                                               sampleSetId, sampleIds, httpServletRequest);
+                                               sampleSetId, sampleIds, httpServletRequest, geneList, geneSetList);
             if (action != null && action.equals(ACTION_SUBMIT) && (!errorsExist)) {
 
                 processData(cancerTypeId, geneList, geneticProfileIdSet, profileList, sampleSetId,
@@ -471,7 +473,8 @@ public class QueryBuilder extends HttpServlet {
                                 ArrayList<GeneticProfile> profileList,
                                  HashSet<String> geneticProfileIdSet,
                                  String sampleSetId, String sampleIds,
-                                 HttpServletRequest httpServletRequest) throws DaoException {
+                                 HttpServletRequest httpServletRequest,
+                                 String geneList, String genesetList) throws DaoException {
         boolean errorsExist = false;
         String tabIndex = httpServletRequest.getParameter(QueryBuilder.TAB_INDEX);
         if (action != null) {
@@ -539,6 +542,49 @@ public class QueryBuilder extends HttpServlet {
                     		errorsExist = true;
                 		}
                 	}
+                }
+
+                // Validate genes and gene sets
+                ArrayList<String> geneListArray = new ArrayList<>(Arrays.asList(geneList.split("( )|(\\n)")));
+                ArrayList<String> genesetListArray = new ArrayList<>(Arrays.asList(genesetList.split("( )|(\\n)")));
+
+                // Validate if box of genes and genesets are empty
+                if (
+                        geneListArray.size() == 1 &&
+                        geneListArray.get(0).equals("") &&
+                        genesetListArray.size() == 1 &&
+                        genesetListArray.get(0).equals("")
+                        ) {
+                    httpServletRequest.setAttribute(STEP4_ERROR_MSG, "Please make a selection to query.");
+                    errorsExist = true;
+                }
+
+                // Validate if gene sets are valid
+                if (!genesetListArray.get(0).equals("")) {
+                    // Retrieve all valid exteral IDs from the database
+                    ArrayList<String> geneSetAllExternalIds = DaoGeneset.getAllGenesetExternalIds();
+
+                    // Create array list to store invalid gene sets
+                    ArrayList<String> invalidGenesets = new ArrayList<String>();
+
+                    // Loop over gene sets in query 
+                    for (int i = 0; i < genesetListArray.size(); i++) {
+                        String geneset = genesetListArray.get(i);
+                        // Add to list when genesets not in database
+                        if (!geneSetAllExternalIds.contains(geneset)) {
+                            invalidGenesets.add(geneset);
+                        }
+                    }
+
+                    // Check number of invalid genesets and write error message
+                    if (invalidGenesets.size() > 0) {
+                        if (invalidGenesets.size() == 1) {
+                            httpServletRequest.setAttribute(STEP4_ERROR_MSG, "Gene set not found in database: " + invalidGenesets.get(0));
+                        } else {
+                            httpServletRequest.setAttribute(STEP4_ERROR_MSG, "Gene sets not found in database: " + String.join(", ", invalidGenesets));
+                        }
+                        errorsExist = true;
+                    }
                 }
 
                 //  Additional validation rules

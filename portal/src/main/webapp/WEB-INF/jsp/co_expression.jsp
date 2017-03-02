@@ -93,13 +93,41 @@
 <div class="section" id="coexp">
     <p>
         <div id='coexp-profile-selector-dropdown' style="margin-top:10px;"></div>
-        This table lists the genes with the highest expression correlation with the query genes. Click on a row to see the corresponding correlation plot. 
+        This table lists the genes and gene sets with the highest expression correlation with the query genetic entities. Click on a row to see the corresponding correlation plot. 
         <img src='images/help.png' id='coexp-help' alt='help'>
     </p>
     <div id="coexp-tabs" class="coexp-tabs">
         <ul id='coexp-tabs-list'></ul>
         <div id='coexp-tabs-content'></div>
     </div>
+</div>
+
+<div id='no_genesets' data-notify='container' 
+class='col-xs-11 col-sm-3 alert alert-warning geneValidationNotification animated fadeInDown' 
+role='alert' data-notify-position='top-right' 
+style='display: none; 
+margin: 0px auto; position: fixed; transition: all 0.5s ease-in-out; z-index: 1031; top: 20px; right: 20px; 
+animation-iteration-count: 1;'>
+	<button type='button' style='display: none' aria-hidden='true' class='close' data-notify='dismiss'></button>
+	<span data-notify='icon'></span> 
+	<span data-notify='title'></span> 
+	<span data-notify='message'>
+		<span id='AD' class='close' data-notify='dismiss' data-hasqtip='35'>No gene sets with a correlation higher than 0.3 or lower than -0.3 were found</span>
+	</span>
+</div>
+
+<div id='no_genes' data-notify='container' 
+class='col-xs-11 col-sm-3 alert alert-warning geneValidationNotification animated fadeInDown' 
+role='alert' data-notify-position='top-right' 
+style='display: none; 
+margin: 0px auto; position: fixed; transition: all 0.5s ease-in-out; z-index: 1031; top: 20px; right: 20px; 
+animation-iteration-count: 1;'>
+	<button type='button' style='display: none' aria-hidden='true' class='close' data-notify='dismiss'></button>
+	<span data-notify='icon'></span> 
+	<span data-notify='title'></span> 
+	<span data-notify='message'>
+		<span id='AD' class='close' data-notify='dismiss' data-hasqtip='35'>No genes with a correlation higher than 0.3 or lower than -0.3 were found</span>
+	</span>
 </div>
 
 <script>

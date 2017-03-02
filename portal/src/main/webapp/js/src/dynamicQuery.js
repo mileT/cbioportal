@@ -53,6 +53,7 @@ var PROFILE_MRNA_EXPRESSION = "PROFILE_MRNA_EXPRESSION";
 var PROFILE_PROTEIN = "PROFILE_PROTEIN";
 var PROFILE_PROTEIN_EXPRESSION = "PROFILE_PROTEIN_EXPRESSION";
 var PROFILE_METHYLATION = "PROFILE_METHYLATION"
+var PROFILE_GSVA_SCORES = "PROFILE_GSVA_SCORES"
 
 var caseSetSelectionOverriddenByUser = false;
 var selectedStudiesStorageKey = "cbioportal_selected_studies";
@@ -233,6 +234,9 @@ function crossCancerStudySelected() {
      $('#step2').hide();
      $('#step2cross').show();
      $('#step3').hide();
+     $('#toggle_geneset_dialog').hide();
+     $('#geneset_list').hide();
+     $('#select_gene_sets').hide();
      $('#step5').hide();
 }
 
@@ -289,6 +293,9 @@ function reviewCurrentSelections(){
 
     // similarly with RPPA
     toggleThresholdPanel($("." + PROFILE_PROTEIN_EXPRESSION+"[type=checkbox]"), PROFILE_PROTEIN_EXPRESSION, "#rppa_score_threshold");
+    
+    // This function makes sure that when incorrect gene set is queried, the box is present on error page
+    toggleGeneSets($("." + PROFILE_GSVA_SCORES+"[type=checkbox]"));
 
     // determine whether optional arguments section should be shown or hidden
  //   if ($("#optional_args > input").length >= 1){
@@ -365,7 +372,8 @@ function getMapping() {
 function chooseAction(evt) {
     $(".error_box").remove();
        var haveExpInQuery = false;
-       if (!window.changingTabs) {
+       // Moved error for not selecting genes to after submit
+	if (!window.changingTabs && !$('#gene_list').val().length == 0) {
 		// validate OQL
 		try {
 			var parsed_result = oql_parser.parse($('#gene_list').val());
@@ -491,6 +499,7 @@ function updateDefaultCaseList() {
     var mutSelect = $("input.PROFILE_MUTATION_EXTENDED[type=checkbox]").prop('checked');
     var cnaSelect = $("input.PROFILE_COPY_NUMBER_ALTERATION[type=checkbox]").prop('checked');
     var expSelect = $("input.PROFILE_MRNA_EXPRESSION[type=checkbox]").prop('checked');
+    var gsvaSelect = $("input.PROFILE_GSVA_SCORES[type=checkbox]").prop('checked');
     var rppaSelect = $("input.PROFILE_PROTEIN_EXPRESSION[type=checkbox]").prop('checked');
     var selectedCancerStudy = $('#select_single_study').val();
     var defaultCaseList = selectedCancerStudy+"_all";
@@ -515,6 +524,8 @@ function updateDefaultCaseList() {
         defaultCaseList = selectedCancerStudy+"_3way_complete";
     } else if (!mutSelect && !cnaSelect && !expSelect && rppaSelect) {
         defaultCaseList = selectedCancerStudy+"_rppa";
+    } else if (gsvaSelect) {
+        defaultCaseList = selectedCancerStudy+"_gsva_scores";
     }
     
     $('#select_case_set').val(defaultCaseList);
@@ -572,7 +583,7 @@ function toggleThresholdPanel(profileClicked, profile, threshold_div) {
 // according to the cancer_study
 function toggleByCancerStudy(cancer_study) {
     var mutsig = $('#toggle_mutsig_dialog');
-    var gistic = $('#toggle_gistic_dialog_button');
+    var gistic = $('#toggle_gistic_dialog');
     if (cancer_study.has_mutsig_data) {
         mutsig.show();
     } else {
@@ -598,6 +609,27 @@ function updateCaseListSmart() {
         	}); 
       });
 }
+
+// if GSVA profile is available and checked, display the geneset button and gene sets textbox
+function toggleGeneSets(profileClicked) {
+	
+    if (profileClicked.prop('checked')){
+    	
+    	// 1. Header "Select Gene Sets:"
+    	// 2. Gene set button that opens hierarchy popup	
+    	// 3. Gene set box
+    	$('#select_gene_sets').show();
+    	$('#toggle_geneset_dialog').show();
+    	$('#geneset_list').show();
+    }
+    // if checkbox is unselected, hide button and textbox
+    else {
+    	$('#select_gene_sets').hide();
+    	$('#toggle_geneset_dialog').hide();
+    	$('#geneset_list').hide();
+    	$('#geneset_list').val("");
+    }
+}  
 
 // Called when and only when a cancer study is selected from the dropdown menu
 function updateCancerStudyInformation() {
@@ -633,6 +665,7 @@ function updateCancerStudyInformation() {
     addGenomicProfiles(cancer_study.genomic_profiles, "MUTATION", PROFILE_MUTATION, "Mutation");
     addGenomicProfiles(cancer_study.genomic_profiles, "MUTATION_EXTENDED", PROFILE_MUTATION_EXTENDED, "Mutation");
     addGenomicProfiles(cancer_study.genomic_profiles, "COPY_NUMBER_ALTERATION", PROFILE_COPY_NUMBER_ALTERATION, "Copy Number");
+    addGenomicProfiles(cancer_study.genomic_profiles, "GENESET_SCORE", PROFILE_GSVA_SCORES, "GSVA Scores");
     addGenomicProfiles(cancer_study.genomic_profiles, "MRNA_EXPRESSION", PROFILE_MRNA_EXPRESSION, "mRNA Expression");
     addGenomicProfiles(cancer_study.genomic_profiles, "METHYLATION", PROFILE_METHYLATION, "DNA Methylation");
     addGenomicProfiles(cancer_study.genomic_profiles, "METHYLATION_BINARY", PROFILE_METHYLATION, "DNA Methylation");
@@ -683,6 +716,11 @@ function updateCancerStudyInformation() {
     //  Set up an Event Handler for showing/hiding mRNA threshold input
     $("." + PROFILE_MRNA_EXPRESSION).click(function(){
        toggleThresholdPanel($(this), PROFILE_MRNA_EXPRESSION, "#z_score_threshold");
+    });
+    
+    //  Set up an Event Handler for showing/hiding gene sets button and textbox
+    $("." + PROFILE_GSVA_SCORES).click(function(){
+       toggleGeneSets($(this));
     });
 
     //  Set up an Event Handler for showing/hiding RPPA threshold input
