@@ -106,7 +106,7 @@ public class GenesetCorrelationServiceImpl implements GenesetCorrelationService 
         List<GeneticProfile> expressionProfilesReferredByGenesetProfile = geneticProfileService.getGeneticProfilesReferredBy(geneticProfileId);
         //we expect only 1 in this case (a geneset only refers to 1 expression profile, so give error otherwise):
         if (expressionProfilesReferredByGenesetProfile.size() != 1) {
-        	throw new RuntimeException("Unexpected error: give geneset profile refers to " + expressionProfilesReferredByGenesetProfile.size() + " profile(s)");
+        	throw new RuntimeException("Unexpected error: given geneset profile refers to " + expressionProfilesReferredByGenesetProfile.size() + " profile(s). Should refer to only 1");
         }
         GeneticProfile expressionProfile = expressionProfilesReferredByGenesetProfile.get(0);
         GeneticProfile zscoresProfile = getLinkedZscoreProfile(expressionProfile);
@@ -145,18 +145,22 @@ public class GenesetCorrelationServiceImpl implements GenesetCorrelationService 
 
 	private GeneticProfile getLinkedZscoreProfile(GeneticProfile expressionProfile) {
 		
-		//TODO - This is a temp solution until we discuss whether indeed to show z-scores on frontend oncoprint expansion tracks.
-    	//       The final solution will involve finding the related z-score profile via the genetic_profile_link 
-    	//       table (and respective adjustments in validator and loader to make this link).
-        String zscoresProfileId = expressionProfile.getStableId() + "_median_Zscores";
-        try {
-	        //validate and fetch:
-	        GeneticProfile zscoresProfile = geneticProfileService.getGeneticProfile(zscoresProfileId);
-	        return zscoresProfile;
-        } catch (GeneticProfileNotFoundException e) {
-			throw new IllegalArgumentException("The expression profile [" + expressionProfile.getStableId() + "] linked to the given "
-					+ "gene set scores profile does not have a corresponding z-scores profile in this study.", e);
-		}
+		//Find the related z-score profile via the genetic_profile_link table:
+    	List<GeneticProfile> referringProfiles = geneticProfileService.getGeneticProfilesReferringTo(expressionProfile.getStableId());
+    	GeneticProfile zscoresProfile = null;
+    	for (GeneticProfile referringProfile : referringProfiles) {
+    		//use the first z-score profile we can find in this list of referring profiles (normally there should be only 1 anyway):
+    		if (referringProfile.getDatatype().equals("Z-SCORE")) {
+    			zscoresProfile = referringProfile;
+    			break;
+    		}
+    	}
+    	//if none found, give clear error message...something is wrong with this study:
+        if (zscoresProfile == null) {
+        	throw new IllegalArgumentException("The expression profile [" + expressionProfile.getStableId() + "] linked to the given "
+					+ "gene set scores profile does not have a corresponding z-scores profile in this study.");
+        }
+        return zscoresProfile;
 	}
 
 	private void sortResult(List<GenesetCorrelation> result) {
