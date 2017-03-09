@@ -1181,6 +1181,26 @@ window.CreateCBioPortalOncoprintWithToolbar = function (ctr_selector, toolbar_se
 		oncoprint.releaseRendering();
 		return new_hm_id;
 	    },
+	    'addExpansionHeatmapTrack': function (genetic_profile_id, gene, correlation, group_track_id, group_track_group) {
+		oncoprint.suppressRendering();
+		var track_params = {
+		    'rule_set_params': HEATMAP_RULE_SET_PARAMS,
+		    'has_column_spacing': false,
+		    'track_padding': 0,
+		    'label': gene,
+		    'track_info': Number(correlation).toFixed(2),
+		    'target_group': group_track_group,
+		    'expansion_of': group_track_id,
+		    'removable': true,
+		    //'sortCmpFn': function(d1, d2) {return 0;},
+		    'description': gene + ' data from ' + genetic_profile_id,
+		    //'track_group_header': genetic_profile_id
+		};
+		var track_id = oncoprint.addTracks([track_params])[0];
+		useExistingHeatmapRuleSet(track_id);
+		oncoprint.releaseRendering();
+		return track_id;
+	    },
 	    'addAndPopulateNonexistingHeatmapTracks': function(genetic_profile_id, genes) {
 		var self = this;
 		return $.when.apply(null, genes.map(function(gene) {
@@ -1238,6 +1258,8 @@ window.CreateCBioPortalOncoprintWithToolbar = function (ctr_selector, toolbar_se
 			'removable': true,
 			'description': track_geneset_id + ' gene set scores from ' + genetic_profile_id,
 			'removeCallback': makeRemoveGenesetTrackHandler(track_geneset_id),
+			'expansionInitCallback': this.setExpansionData.bind(this,
+				track_geneset_id),
 		    };
 		    new_track_id = oncoprint.addTracks([track_params])[0];
 		    track_ids.push(new_track_id);
@@ -1249,6 +1271,65 @@ window.CreateCBioPortalOncoprintWithToolbar = function (ctr_selector, toolbar_se
 		}
 		oncoprint.releaseRendering();
 		return track_ids;
+	    },
+	    'setExpansionData': function (geneset_id, track_id) {
+		var self = this;
+		LoadingBar.show();
+		LoadingBar.update(0.1, 'yellow');
+		LoadingBar.msg('Fetching genes..');
+		return QuerySession.getGenesetGeneCorrelations(geneset_id)
+		.then(function (genes) {
+		    oncoprint.model.setExpansionGeneData(track_id, genes);
+		    oncoprint.model.setExpansionCallback(track_id, self.expandTrack.bind(self));
+		});
+	    },
+	    'expandTrack': function (geneset_track_id, source_genes) {
+		LoadingBar.show();
+		LoadingBar.msg('Expanding..');
+		LoadingBar.update(0.9, 'green');
+		// identify the track group the gene set track is in
+		var i, group_index = null, track_order_in_group = null, track_index = null;
+		var all_groups = oncoprint.model.getTrackGroups();
+		for (i = 0; i < all_groups.length; i++) {
+		    track_index = all_groups[i].indexOf(geneset_track_id);
+		    if (track_index !== -1) {
+			group_index = i;
+			track_order_in_group = all_groups[i].slice();
+			break;
+		    }
+		}
+		// find the index of the track after which to insert new track;
+		// this is the bottom-most expansion track if any are below the
+		// gene set track itself
+		for (i = track_order_in_group.length - 1; i > track_index; i--) {
+		    if (oncoprint.model.isExpansionOf(
+			    track_order_in_group[i], geneset_track_id)) {
+			track_index = i;
+			break;
+		    }
+		}
+		// add the gene tracks to the Oncoprint and the ordering
+		var symbol, correlation, profile_id, subtrack_id, promise_list = [];
+		oncoprint.suppressRendering();
+		for (i = 0; i < source_genes.length; i++) {
+		    symbol = source_genes[i].hugoGeneSymbol;
+		    profile_id = source_genes[i].zScoreGeneticProfileId;
+		    correlation = source_genes[i].correlationValue;
+		    subtrack_id = this.addExpansionHeatmapTrack(
+			    profile_id, symbol, correlation, geneset_track_id, group_index);
+		    promise_list.push(populateHeatmapTrack(profile_id, symbol, subtrack_id));
+		    // insert subtrack id after existing track index
+		    track_order_in_group.splice(track_index + 1, 0, subtrack_id);
+		    track_index++;
+		}
+		// register a callback to set the order once all tracks
+		// are populated
+		return $.when.apply(null, promise_list)
+		.then(function() {
+		    oncoprint.setTrackGroupOrder(group_index, track_order_in_group);
+		    LoadingBar.hide();
+		    oncoprint.releaseRendering();
+		});
 	    },
 	    'useAndAddAttribute': function(attr_id) {
 		var attr = this.useAttribute(attr_id);
