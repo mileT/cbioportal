@@ -206,7 +206,7 @@ var Oncoprint = (function () {
 	}*/
 	
 	this.track_options_view = new OncoprintTrackOptionsView($track_options_div,
-								function(track_id) { 
+								function (track_id) {
 								    // move up
 								    var tracks = self.model.getContainingTrackGroup(track_id);
 								    var index = tracks.indexOf(track_id);
@@ -218,7 +218,7 @@ var Oncoprint = (function () {
 									self.moveTrack(track_id, new_previous_track);
 								    }
 								},
-								function(track_id) {
+								function (track_id) {
 								    // move down
 								    var tracks = self.model.getContainingTrackGroup(track_id);
 								    var index = tracks.indexOf(track_id);
@@ -226,8 +226,17 @@ var Oncoprint = (function () {
 									self.moveTrack(track_id, tracks[index+1]);
 								    }
 								},
-								function(track_id) { self.removeTrack(track_id); }, 
-								function(track_id, dir) { self.setTrackSortDirection(track_id, dir); });
+								function (track_id) { self.removeTrack(track_id); },
+								function (track_id, dir) { self.setTrackSortDirection(track_id, dir); },
+								function (track_id) {
+								    // remove all related expansion tracks
+								    var tracks_to_remove = self.model.track_expansion_tracks[track_id].slice(), i;
+								    self.suppressRendering();
+								    for (i = 0; i < tracks_to_remove.length; i++) {
+									self.removeTrack(tracks_to_remove[i]);
+								    }
+								    self.releaseRendering();
+								});
 	this.track_info_view = new OncoprintTrackInfoView($track_info_div);
 								
 	//this.track_info_view = new OncoprintTrackInfoView($track_info_div);

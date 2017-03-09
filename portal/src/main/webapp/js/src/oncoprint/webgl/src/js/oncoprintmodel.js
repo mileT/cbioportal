@@ -143,6 +143,11 @@ var OncoprintModel = (function () {
 	this.track_active_rules = {}; // from track id to active rule map (map with rule ids as keys)
 	this.track_info = {};
 	this.track_has_column_spacing = {}; // track id -> boolean
+	this.track_expansion_init_callback = {}; // track id -> function that initializes expansion data if applicable
+	this.track_expansion_genes = {}; // track id -> array of gene data to expand if initialized
+	this.track_expansion_index = {}; // track id -> index in track_expansion_genes[track_id] if initialized
+	this.track_expansion_callback = {}; // track id -> function that takes gene data and adds expansion tracks if initialized
+	this.track_expansion_tracks = {}; // track id -> array of track ids if applicable
 	
 	// Rule Set Properties
 	this.rule_sets = {}; // map from rule set id to rule set
@@ -639,7 +644,8 @@ var OncoprintModel = (function () {
 		    params.data_id_key, params.tooltipFn,
 		    params.removable, params.removeCallback, params.label, params.description, params.track_info,
 		    params.sortCmpFn, params.sort_direction_changeable, params.init_sort_direction,
-		    params.data, params.rule_set, params.track_label_color);
+		    params.data, params.rule_set, params.track_label_color, params.expansion_of,
+		    params.expansionInitCallback);
 	}
 	this.track_tops.update();
     }
@@ -649,7 +655,7 @@ var OncoprintModel = (function () {
 	    data_id_key, tooltipFn,
 	    removable, removeCallback, label, description, track_info,
 	    sortCmpFn, sort_direction_changeable, init_sort_direction,
-	    data, rule_set, track_label_color) {
+	    data, rule_set, track_label_color, expansion_of, expansionInitCallback) {
 	model.track_label[track_id] = ifndef(label, "Label");
 	model.track_label_color[track_id] = ifndef(track_label_color, "black");
 	model.track_description[track_id] = ifndef(description, "");
@@ -662,6 +668,19 @@ var OncoprintModel = (function () {
 	});
 	model.track_removable[track_id] = ifndef(removable, false);
 	model.track_remove_callback[track_id] = ifndef(removeCallback, function() {});
+	
+	if (typeof expansion_of !== 'undefined') {
+	    if (!model.track_expansion_tracks.hasOwnProperty(expansion_of)) {
+		model.track_expansion_tracks[expansion_of] = [];
+	    }
+	    if (model.track_expansion_tracks[expansion_of].indexOf(track_id) !== -1) {
+		throw new Error('Illegal state: duplicate expansion track ID');
+	    }
+	    model.track_expansion_tracks[expansion_of].push(track_id);
+	}
+	if (typeof expansionInitCallback !== 'undefined') {
+	    model.track_expansion_init_callback[track_id] = expansionInitCallback;
+	}
 	
 	model.track_sort_cmp_fn[track_id] = ifndef(sortCmpFn, function () {
 	    return 0;
@@ -750,6 +769,21 @@ var OncoprintModel = (function () {
 	if (containing_track_group !== null) {
 	    containing_track_group.splice(
 		    containing_track_group.indexOf(track_id), 1);
+	}
+	// remove any listing of the track as the expansion of another track
+	var group_track, index_in_group;
+	for (group_track in this.track_expansion_tracks) {
+	    if (this.track_expansion_tracks.hasOwnProperty(group_track)) {
+		index_in_group = this.track_expansion_tracks[group_track].indexOf(track_id);
+		if (index_in_group !== -1) {
+		    this.track_expansion_tracks[group_track].splice(index_in_group, 1);
+		    // if this was the last expansion of the group track,
+		    // make it start from the first one when re-expanding
+		    if (this.track_expansion_tracks[group_track].length === 0) {
+			this.track_expansion_index[group_track] = 0;
+		    }
+		}
+	    }
 	}
 	this.track_tops.update();
 	this.track_present_ids.update(this, track_id);
@@ -971,7 +1005,73 @@ var OncoprintModel = (function () {
     OncoprintModel.prototype.isTrackSortDirectionChangeable = function (track_id) {
 	return this.track_sort_direction_changeable[track_id];
     }
-
+    
+    OncoprintModel.prototype.isTrackExpandable = function (track_id) {
+	// return true if track has a callback set, and is not fully expanded
+	var index = this.track_expansion_index[track_id],
+	    data_array = this.track_expansion_genes[track_id];
+	return this.track_expansion_init_callback.hasOwnProperty(track_id) &&
+		(index === undefined || data_array === undefined ||
+			index < data_array.length);
+    }
+    
+    /**
+     * Expands track 5 genes at a time after calling its expansionInitCallback.
+     *
+     * Calls the tracks's expansionInitCallback if not yet initialized,
+     * and then calls the expansionIndex on the first five gene
+     * data, updating the track_expansion_index
+     *
+     * @param {number} track_id - ID of the track to expand
+     * @returns {Promise} promise that resolves after completing both actions
+     */
+    OncoprintModel.prototype.expandTrack = (function () {
+	var completion_promises = {};
+	return function (track_id) {
+	    // if a promise chain was not already started for this track,
+	    if (!completion_promises.hasOwnProperty(track_id)) {
+		// if the callback returns a promise, only resolve when that resolves
+		completion_promises[track_id] = $.when(this.track_expansion_init_callback[track_id](track_id));
+		this.track_expansion_index[track_id] = 0;
+	    }
+	    // expand after any previous steps resolve, resolving when done
+	    var self = this;
+	    completion_promises[track_id] = completion_promises[track_id].then(function () {
+		var maxGenes = 5,
+		    index = self.track_expansion_index[track_id];
+		// select the first `maxGenes` genes starting from the index, up to the end of the array
+		var genes = self.track_expansion_genes[track_id].slice(index, index + maxGenes);
+		self.track_expansion_index[track_id] += genes.length;
+		return self.track_expansion_callback[track_id](track_id, genes);
+	    });
+	    return completion_promises[track_id];
+	};
+    })();
+    
+    OncoprintModel.prototype.setExpansionGeneData = function (track_id, geneDataArray) {
+	this.track_expansion_genes[track_id] = geneDataArray;
+    }
+    
+    OncoprintModel.prototype.setExpansionCallback = function (track_id, callbackFn) {
+	this.track_expansion_callback[track_id] = callbackFn;
+    }
+    
+    OncoprintModel.prototype.isTrackExpanded = function (track_id) {
+	return this.track_expansion_tracks.hasOwnProperty(track_id) &&
+		this.track_expansion_tracks[track_id].length > 0;
+    }
+    
+    /**
+     * Checks if one track is the expansion of another
+     *
+     * @param {number} expansion_track_id - the ID of the track to check
+     * @param {number} set_track_id - the ID of the track it may be an expansion of
+     */
+    OncoprintModel.prototype.isExpansionOf = function (expansion_track_id, set_track_id) {
+	return this.track_expansion_tracks.hasOwnProperty(set_track_id) &&
+	    this.track_expansion_tracks[set_track_id].indexOf(expansion_track_id) !== -1;
+    }
+    
     OncoprintModel.prototype.getRuleSet = function (track_id) {
 	return this.rule_sets[this.track_rule_set_id[track_id]];
     }
