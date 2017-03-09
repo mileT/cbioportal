@@ -320,9 +320,7 @@ CREATE TABLE `geneset_hierarchy_leaf` (
 );
 
 -- --------------------------------------------------------
-CREATE TABLE `geneset_info` (
-  `GENESET_VERSION` varchar(24)
-);
+ALTER TABLE `info` ADD COLUMN `GENESET_VERSION` VARCHAR(24) NULL AFTER `DB_SCHEMA_VERSION`;
 
 -- --------------------------------------------------------
 CREATE TABLE `genetic_profile_link` (

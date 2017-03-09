@@ -95,7 +95,6 @@ DROP TABLE IF EXISTS `geneset_hierarchy_leaf`;
 DROP TABLE IF EXISTS `geneset_hierarchy`;
 DROP TABLE IF EXISTS `geneset`;
 DROP TABLE IF EXISTS `genetic_entity`;
-DROP TABLE IF EXISTS `geneset_info`;
 
 -- --------------------------------------------------------
 CREATE TABLE `type_of_cancer` (
@@ -252,11 +251,6 @@ CREATE TABLE `geneset_hierarchy_leaf` (
   PRIMARY KEY (`NODE_ID`, `GENESET_ID`),
   FOREIGN KEY (`NODE_ID`) REFERENCES `geneset_hierarchy` (`NODE_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`GENESET_ID`) REFERENCES `geneset` (`ID`) ON DELETE CASCADE
-);
-
--- --------------------------------------------------------
-CREATE TABLE `geneset_info` (
-  `GENESET_VERSION` varchar(24)
 );
 
 -- --------------------------------------------------------
@@ -765,7 +759,8 @@ CREATE TABLE `clinical_event_data` (
 
 -- --------------------------------------------------------
 CREATE TABLE `info` (
-  `DB_SCHEMA_VERSION` varchar(24)
+  `DB_SCHEMA_VERSION` varchar(24),
+  `GENESET_VERSION` varchar(24)
 ) DEFAULT CHARSET=utf8;
 -- THIS MUST BE KEPT IN SYNC WITH db.version PROPERTY IN pom.xml
-INSERT INTO info VALUES ('2.1.0');
+INSERT INTO info VALUES ('2.1.0', NULL);
