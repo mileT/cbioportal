@@ -14,7 +14,7 @@
     <select id="getGenesetHierarchyParents" resultType="org.cbioportal.model.GenesetHierarchyInfo">
         SELECT
         <include refid="select"/>
-        FROM geneset_hierarchy as a left join geneset_hierarchy as b ON a.PARENT_ID = b.NODE_ID
+        FROM geneset_hierarchy_node as a left join geneset_hierarchy_node as b ON a.PARENT_ID = b.NODE_ID
         <if test="genesetIds != null and !genesetIds.isEmpty()">
 	  WHERE a.NODE_ID in 
 	        (SELECT geneset_hierarchy_leaf.NODE_ID 
@@ -31,7 +31,7 @@
     <select id="getGenesetHierarchySuperNodes" resultType="org.cbioportal.model.GenesetHierarchyInfo">
         SELECT
         <include refid="select"/>
-        FROM geneset_hierarchy as a LEFT join geneset_hierarchy as b ON a.PARENT_ID = b.NODE_ID
+        FROM geneset_hierarchy_node as a LEFT join geneset_hierarchy_node as b ON a.PARENT_ID = b.NODE_ID
         WHERE a.NODE_ID NOT in 
 	        (SELECT geneset_hierarchy_leaf.NODE_ID 
 	         FROM geneset_hierarchy_leaf JOIN geneset ON geneset_hierarchy_leaf.GENESET_ID = geneset.ID
