@@ -41,7 +41,7 @@ import java.util.List;
 
 import org.mskcc.cbio.portal.dao.DaoException;
 import org.mskcc.cbio.portal.dao.DaoGeneset;
-import org.mskcc.cbio.portal.dao.DaoGenesetHierarchy;
+import org.mskcc.cbio.portal.dao.DaoGenesetHierarchyNode;
 import org.mskcc.cbio.portal.dao.DaoGenesetHierarchyLeaf;
 import org.mskcc.cbio.portal.dao.JdbcUtil;
 import org.mskcc.cbio.portal.model.Geneset;
@@ -96,7 +96,7 @@ public class TestImportGenesetHierarchyData {
     }
 	
 	/**
-	 * Retrieve gene set hierarchy objects from geneset_hierarchy table in database.
+	 * Retrieve gene set hierarchy objects from geneset_hierarchy_node table in database.
 	 * THis 
 	 * @throws DaoException 
 	 */
@@ -107,10 +107,10 @@ public class TestImportGenesetHierarchyData {
 	    
 	    try {
 	    	// Open connection to database
-	        connection = JdbcUtil.getDbConnection(DaoGenesetHierarchy.class);
+	        connection = JdbcUtil.getDbConnection(DaoGenesetHierarchyNode.class);
 	        
 	        // Prepare SQL statement
-	        preparedStatement = connection.prepareStatement("SELECT * FROM geneset_hierarchy WHERE NODE_ID = ?");
+	        preparedStatement = connection.prepareStatement("SELECT * FROM geneset_hierarchy_node WHERE NODE_ID = ?");
 	        preparedStatement.setInt(1, nodeId);
 
 	        // Execute statement
@@ -130,7 +130,7 @@ public class TestImportGenesetHierarchyData {
 	    } catch (SQLException e) {
 	        throw new DaoException(e);
 	    } finally {
-	        JdbcUtil.closeAll(DaoGenesetHierarchy.class, connection, preparedStatement, resultSet);
+	        JdbcUtil.closeAll(DaoGenesetHierarchyNode.class, connection, preparedStatement, resultSet);
 	    }
 	}
 }

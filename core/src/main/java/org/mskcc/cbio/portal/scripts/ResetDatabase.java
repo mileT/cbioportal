@@ -60,7 +60,7 @@ public class ResetDatabase {
         DaoGeneOptimized daoGene = DaoGeneOptimized.getInstance();
         daoGene.deleteAllRecords();
         DaoGeneset.deleteAllRecords();
-        DaoGenesetInfo.deleteAllRecords();
+        DaoGenesetInfo.clearVersion();
         DaoSampleProfile.deleteAllRecords();
         DaoGeneticAlteration daoGenetic = DaoGeneticAlteration.getInstance();
         daoGenetic.deleteAllRecords();

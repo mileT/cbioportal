@@ -37,7 +37,7 @@ public class DaoGenesetInfo {
 	}
 	
 	/**
-     * Set gene set version in geneset_info table in database.
+     * Set gene set version in `info` table in database.
      * @throws DaoException 
      */
     public static void setGenesetInfo(GenesetInfo genesetInfo) throws DaoException {
@@ -50,7 +50,7 @@ public class DaoGenesetInfo {
             connection = JdbcUtil.getDbConnection(DaoGenesetInfo.class);
 	        
 	        // Prepare SQL statement
-            preparedStatement = connection.prepareStatement("INSERT INTO geneset_info " + "(GENESET_VERSION) VALUES(?)");
+            preparedStatement = connection.prepareStatement("UPDATE info set GENESET_VERSION = ?");
             
             preparedStatement.setString(1, genesetInfo.getVersion());
             // Execute statement
@@ -61,35 +61,9 @@ public class DaoGenesetInfo {
             JdbcUtil.closeAll(DaoGenesetInfo.class, connection, preparedStatement, resultSet);
         }
     }	
-    	
-	/**
-     * Set gene set version in geneset_info table in database.
-     * @throws DaoException 
-     */
-    public static void updateGenesetInfo(GenesetInfo genesetInfo) throws DaoException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        
-        try {
-        	// Open connection to database
-            connection = JdbcUtil.getDbConnection(DaoGenesetInfo.class);
-	        
-	        // Prepare SQL statement
-            preparedStatement = connection.prepareStatement("UPDATE geneset_info SET GENESET_VERSION=?");
-            preparedStatement.setString(1, genesetInfo.getVersion());
 
-            // Execute statement
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DaoException(e);
-        } finally {
-            JdbcUtil.closeAll(DaoGenesetInfo.class, connection, preparedStatement, resultSet);
-        }
-    }	
-    
 	/**
-     * Get gene set version from geneset_info table in database.
+     * Get gene set version from `info` table in database.
      * @throws DaoException 
      */
     public static GenesetInfo getGenesetInfo() throws DaoException {
@@ -104,7 +78,7 @@ public class DaoGenesetInfo {
         	
 	        // Prepare SQL statement
         	preparedStatement = connection.prepareStatement(
-        			"SELECT * FROM geneset_info");
+        			"SELECT * FROM info");
         	
             // Execute statement
         	resultSet = preparedStatement.executeQuery();
@@ -123,17 +97,17 @@ public class DaoGenesetInfo {
     }
 
     /**
-     * Deletes all records from 'geneset_info' table in database.
+     * Clears (resets to NULL) the gene set version in `info` table in database.
      * @throws DaoException 
      */
-	public static void deleteAllRecords() throws DaoException {
+	public static void clearVersion() throws DaoException {
 		Connection con = null;
 	    PreparedStatement pstmt = null;
 	    ResultSet rs = null;
 	    try {
 	        con = JdbcUtil.getDbConnection(DaoGenesetInfo.class);
 	
-	        pstmt = con.prepareStatement("DELETE FROM geneset_info");
+	        pstmt = con.prepareStatement("UPDATE info set GENESET_VERSION = NULL");
 	        pstmt.executeUpdate();
 	    }
 	    catch (SQLException e) {

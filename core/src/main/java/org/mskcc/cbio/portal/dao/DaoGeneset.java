@@ -37,7 +37,7 @@
 
 package org.mskcc.cbio.portal.dao;
 
-import org.mskcc.cbio.portal.dao.DaoGenesetHierarchy;
+import org.mskcc.cbio.portal.dao.DaoGenesetHierarchyNode;
 import org.mskcc.cbio.portal.model.CanonicalGene;
 import org.mskcc.cbio.portal.model.Geneset;
 import org.mskcc.cbio.portal.scripts.ImportGenesetData;
@@ -465,7 +465,7 @@ public class DaoGeneset {
     	deleteGenesetGeneticProfileLinks();
     	deleteGenesetGeneticProfiles();
     	deleteGenesetGeneticEntityRecords();
-    	DaoGenesetHierarchy.deleteAllGenesetHierarchyRecords();
+    	DaoGenesetHierarchyNode.deleteAllGenesetHierarchyRecords();
     }
 }
 

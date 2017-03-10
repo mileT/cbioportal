@@ -31,14 +31,14 @@ import java.sql.*;
 
 import org.mskcc.cbio.portal.model.GenesetHierarchy;
 
-public class DaoGenesetHierarchy {
+public class DaoGenesetHierarchyNode {
 	
 	// Keep Constructor empty
-	private DaoGenesetHierarchy() {
+	private DaoGenesetHierarchyNode() {
 	}
     
 	/**
-     * Add gene set hierarchy object to geneset_hierarchy table in database.
+     * Add gene set hierarchy object to geneset_hierarchy_node table in database.
      * @throws DaoException 
      */
 	public static void addGenesetHierarchy(GenesetHierarchy genesetHierarchy) throws DaoException {
@@ -48,10 +48,10 @@ public class DaoGenesetHierarchy {
         
         try {
         	// Open connection to database
-            connection = JdbcUtil.getDbConnection(DaoGenesetHierarchy.class);
+            connection = JdbcUtil.getDbConnection(DaoGenesetHierarchyNode.class);
 	        
 	        // Prepare SQL statement
-            preparedStatement = connection.prepareStatement("INSERT INTO geneset_hierarchy " 
+            preparedStatement = connection.prepareStatement("INSERT INTO geneset_hierarchy_node "
 	                + "(`NODE_NAME`, `PARENT_ID`) VALUES(?,?)", Statement.RETURN_GENERATED_KEYS);
 	        
             // Fill in statement
@@ -74,13 +74,13 @@ public class DaoGenesetHierarchy {
         } catch (SQLException e) {
             throw new DaoException(e);
         } finally {
-            JdbcUtil.closeAll(DaoGenesetHierarchy.class, connection, preparedStatement, resultSet);
+            JdbcUtil.closeAll(DaoGenesetHierarchyNode.class, connection, preparedStatement, resultSet);
         }
 	}
 
 
     /**
-     * Retrieve gene set hierarchy object from geneset_hierarchy table in database to check if table if filled.
+     * Retrieve gene set hierarchy object from geneset_hierarchy_node table in database to check if table if filled.
      * @throws DaoException 
      */
 	public static boolean checkGenesetHierarchy() throws DaoException {
@@ -90,10 +90,10 @@ public class DaoGenesetHierarchy {
         
         try {
         	// Open connection to database
-            connection = JdbcUtil.getDbConnection(DaoGenesetHierarchy.class);
+            connection = JdbcUtil.getDbConnection(DaoGenesetHierarchyNode.class);
 	        
 	        // Prepare SQL statement
-            preparedStatement = connection.prepareStatement("SELECT * FROM geneset_hierarchy LIMIT 1");
+            preparedStatement = connection.prepareStatement("SELECT * FROM geneset_hierarchy_node LIMIT 1");
             
             // Execute statement
             resultSet = preparedStatement.executeQuery();
@@ -108,13 +108,16 @@ public class DaoGenesetHierarchy {
         } catch (SQLException e) {
             throw new DaoException(e);
         } finally {
-            JdbcUtil.closeAll(DaoGenesetHierarchy.class, connection, preparedStatement, resultSet);
+            JdbcUtil.closeAll(DaoGenesetHierarchyNode.class, connection, preparedStatement, resultSet);
         }
 	}
 
 
     /**
-     * Deletes all records from 'geneset_hierarchy_parent' table in database
+     * Deletes all records from 'geneset_hierarchy_node' table in database.
+     * This also deletes all records from related 'geneset_hierarchy_leaf' table, via ON DELETE CASCADE
+     * constraint in DB.
+     *
      * @throws DaoException 
      */   
 	public static void deleteAllGenesetHierarchyRecords() throws DaoException {
@@ -122,13 +125,13 @@ public class DaoGenesetHierarchy {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-        	connection = JdbcUtil.getDbConnection(DaoGenesetHierarchy.class);
-        	preparedStatement = connection.prepareStatement("DELETE FROM geneset_hierarchy");
+        	connection = JdbcUtil.getDbConnection(DaoGenesetHierarchyNode.class);
+        	preparedStatement = connection.prepareStatement("DELETE FROM geneset_hierarchy_node");
         	preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DaoException(e);
         } finally {
-            JdbcUtil.closeAll(DaoGenesetHierarchy.class, connection, preparedStatement, resultSet);
+            JdbcUtil.closeAll(DaoGenesetHierarchyNode.class, connection, preparedStatement, resultSet);
         }
     }
     

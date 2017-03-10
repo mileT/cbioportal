@@ -165,7 +165,7 @@ public class ImportGenesetData extends ConsoleRunnable {
 	            	DaoGeneset.deleteAllRecords();
 	            	ProgressMonitor.setCurrentMessage("Adding new gene sets.");
 	            	startImport(options, data, supp, updateInfo, newVersion);
-            		DaoGenesetInfo.updateGenesetInfo(genesetInfo);
+            		DaoGenesetInfo.setGenesetInfo(genesetInfo);
             	}
         		ProgressMonitor.setCurrentMessage("It is now possible to import gene set hierarchy data and gene set genetic profiles such as GSVA scores.");
             }

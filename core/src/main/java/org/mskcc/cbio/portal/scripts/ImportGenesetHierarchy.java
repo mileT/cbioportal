@@ -73,12 +73,12 @@ public class ImportGenesetHierarchy extends ConsoleRunnable {
 
 			ProgressMonitor.setCurrentMessage("Input file:\n" + genesetFile.getPath() + "\n");
 
-			// Check if geneset_hierarchy already filled
-			boolean emptyDatabase = !DaoGenesetHierarchy.checkGenesetHierarchy();
+			// Check if geneset_hierarchy_node already filled
+			boolean emptyDatabase = !DaoGenesetHierarchyNode.checkGenesetHierarchy();
 			if (emptyDatabase) {
-				ProgressMonitor.setCurrentMessage("Table `geneset_hierarchy` is empty.\n");
+				ProgressMonitor.setCurrentMessage("Table `geneset_hierarchy_node` is empty.\n");
 			} else {
-				ProgressMonitor.setCurrentMessage("Table `geneset_hierarchy` is not empty.\n");
+				ProgressMonitor.setCurrentMessage("Table `geneset_hierarchy_node` is not empty.\n");
 			}
 
 			// First we want to validate that the gene sets we're adding, are in database.
@@ -101,8 +101,8 @@ public class ImportGenesetHierarchy extends ConsoleRunnable {
 					}
 				}
 
-				ProgressMonitor.setCurrentMessage("Emptying `geneset_hierarchy` and `geneset_hierarchy_leaf` before filling with new data.\n");
-				DaoGenesetHierarchy.deleteAllGenesetHierarchyRecords();
+				ProgressMonitor.setCurrentMessage("Emptying `geneset_hierarchy_node` and `geneset_hierarchy_leaf` before filling with new data.\n");
+				DaoGenesetHierarchyNode.deleteAllGenesetHierarchyRecords();
 			}	
 
 			// If this is succesful, we want to import
@@ -129,7 +129,7 @@ public class ImportGenesetHierarchy extends ConsoleRunnable {
 		// Initiate start nodeId to give to first iteration.
 		int nodeIds = 0;
 
-		// Parse the tree and import to geneset_hierarchy
+		// Parse the tree and import to geneset_hierarchy_node
 		parseTree(genesetTree, nodeIds, validate);
 	}
 
@@ -182,8 +182,8 @@ public class ImportGenesetHierarchy extends ConsoleRunnable {
 						genesetHierarchy.setNodeName(childNode);
 						genesetHierarchy.setParentId(parentNodeId);
 
-						// Add node to geneset_hierarchy
-						DaoGenesetHierarchy.addGenesetHierarchy(genesetHierarchy);
+						// Add node to geneset_hierarchy_node
+						DaoGenesetHierarchyNode.addGenesetHierarchy(genesetHierarchy);
 
 						// Get node ID 
 						childNodeId = genesetHierarchy.getNodeId();

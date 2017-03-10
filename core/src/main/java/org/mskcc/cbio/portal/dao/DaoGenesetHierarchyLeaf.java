@@ -39,7 +39,7 @@ public class DaoGenesetHierarchyLeaf {
 	}
     
 	/**
-     * Add gene set hierarchy object to geneset_hierarchy table in database.
+     * Add gene set hierarchy object to geneset_hierarchy_leaf table in database.
      * @throws DaoException 
      */	
 	public static void addGenesetHierarchyLeaf(GenesetHierarchyLeaf genesetHierarchyLeaf) throws DaoException {
