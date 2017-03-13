@@ -94,7 +94,7 @@ var initGenesetDialogue = function() {
 };
 
 // Inititalize gene set hierarchical tree
-var initializeGenesetJstree = function (percentile = "75", scoreThreshold = "0.1", pvalueThreshold = "0.05") {
+var initializeGenesetJstree = function (percentile, scoreThreshold, pvalueThreshold) {
 	console.log("Initializing hierarchical tree for gene set popup");
 
 	// Construct URL

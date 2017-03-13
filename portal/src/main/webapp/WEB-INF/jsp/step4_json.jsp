@@ -102,8 +102,11 @@
 		// Save loading image in global var
         loadingImage = $('#geneset_dialog #loader-img');
 		
-    	// Call the webservice and render the tree again with webservice response:
-        initializeGenesetJstree();
+    	// Call the webservice with default thresholds and render the tree with webservice response:
+        var percentile = "75";
+        var scoreThreshold = "0.1";
+        var pvalueThreshold = "0.05"
+        initializeGenesetJstree(percentile, scoreThreshold, pvalueThreshold);
         return;
     };
     </script>
